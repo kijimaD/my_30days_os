@@ -35,13 +35,13 @@
 ; Message
 
     DB      0x0a, 0x0a          ; 改行を2つ
-    DB      "hello, world!"
+    DB      "hello, world!"     ; DB命令は文字列を書ける
     DB      0x0a                ; 改行
     DB      0
 
-    RESB    0x1fe-($-$$)
+    RESB    0x1fe-($-$$)        ; ドルマークは先頭から何バイト目かを示す
 
-    DB      0x55, 0xaa
+    DB      0x55, 0xaa          ; ブートセクタの最後の2バイト
 
 ; ブート以外の記述
 
