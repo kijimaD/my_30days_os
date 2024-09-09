@@ -1,24 +1,24 @@
 .code16
 
 jmp entry
-.byte   0x90
-.ascii  "HELLOIPL"
-.word   512
-.byte   1
-.word   1
-.byte   2
-.word   224
-.word   2880
-.byte   0xf0
-.word   9
-.word   18
-.word   2
-.int    0
-.int    2880
-.byte   0, 0, 0x29
-.int    0xffffffff
-.ascii  "HELLO-OS   "
-.ascii  "FAT12   "
+.byte   0x90           # ブートセレクタの名前(8byte)
+.ascii  "HELLOIPL"     # 1セクタの大きさ
+.word   512            # クラスタの大きさ
+.byte   1              # FATがどこから始まるか
+.word   1              # FATの個数
+.byte   2              # ルートディレクトリ領域の大きさ
+.word   224            # このドライブの大きさ
+.word   2880           # メディアタイプ
+.byte   0xf0           # FAT領域の長さ
+.word   9              # 1トラックにいくつのセクタがあるか
+.word   18             # ヘッドの数
+.word   2              # パーティションを使っていないのでここは必ず0
+.int    0              # このドライブの大きさをもう一度書く
+.int    2880           # よくわからないけどこの値にしておくといいらしい
+.byte   0, 0, 0x29     # たぶんボリュームシリアル番号
+.int    0xffffffff     # ディスクの名前(11byte)
+.ascii  "HELLO-OS   "  # フォーマットの名前(8byte)
+.ascii  "FAT12   "     # とりあえず18バイト空けておく。0x00で埋める
 .skip   18, 0
 
 entry:
