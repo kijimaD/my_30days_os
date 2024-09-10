@@ -1,4 +1,5 @@
 .code16
+.set CYLS, 10
 
 jmp entry
 .byte   0x90           # ブートセレクタの名前(8byte)
@@ -63,9 +64,19 @@ next:
         # 対象のアドレスは(ES x 16 + BX)でキマるので、ESを0x20ずらすと、512byte分(1セクタ)ずらしたのとおなじになる
         add $0x20, %ax
         movw %ax, %es
-        add $1, %cl
+        addb $1, %cl
         cmp $18, %cl # セクター18まで読み込む
-        jae readloop
+        jae readloop # 以上なら
+
+        movb $1, %cl
+        addb $1, %dh
+        cmp $2, %dh
+        jb readloop # より下なら
+
+        movb $0, %dh
+        addb $1, %ch
+        cmp $CYLS, %ch
+        jb readloop # より下なら
 
 fin:
         hlt               # CPUを停止
