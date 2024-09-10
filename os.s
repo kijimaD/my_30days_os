@@ -35,12 +35,15 @@ entry:
         movb $0, %dh      # head 0
         movb $2, %cl      # sector 2
 
+        movw $0, %si      # retry counter
+
+retry:
         movb $0x02, %ah   # ah=0x02 read
         movb $1, %al      # 1 sector
         movw $0, %bx      # buffer address(ES:BX)
         movb $0x00, %dl   # drive A
         int  $0x13        # interrupt bios
-        jc   error        # エラーがあればerrorにとぶ
+        jnc fin           # エラーがなければ終了
 
 fin:
         hlt               # CPUを停止
@@ -60,7 +63,7 @@ putloop:
         jmp putloop       # 次の文字
 
 msg:
-        .string "\nload error\n\n"
+        .string "\nload error!\n\n"
 
 # end of boot sector
 .org    0x01fe            # ここまでのバイナリサイズを510バイトに揃える
