@@ -35,7 +35,8 @@ entry:
         movb $0, %dh      # head 0
         movb $2, %cl      # sector 2
 
-        movw $0, %si      # retry counter
+readloop:
+        movw $0, %si # retry counter
 
 retry:
         movb $0x02, %ah   # ah=0x02 read
@@ -43,7 +44,28 @@ retry:
         movw $0, %bx      # buffer address(ES:BX)
         movb $0x00, %dl   # drive A
         int  $0x13        # interrupt bios
-        jnc fin           # エラーがなければ終了
+        jnc  next         # エラーがなければ次へ
+
+        addw $1, %si      # エラーカウントをカウントアップ
+        cmp  $5, %si
+        jae  error        # エラーカウント5回でエラー処理へ
+
+        # 再実行前にドライブ情報をリセット(drive A)
+        movb $0x00, %ah
+        movb $0x00, %dl   # drive A
+        int  $0x13
+
+        jmp retry
+
+next:
+        movw %es, %ax
+        # 512 / 16 = 0x20
+        # 対象のアドレスは(ES x 16 + BX)でキマるので、ESを0x20ずらすと、512byte分(1セクタ)ずらしたのとおなじになる
+        add $0x20, %ax
+        movw %ax, %es
+        add $1, %cl
+        cmp $18, %cl # セクター18まで読み込む
+        jae readloop
 
 fin:
         hlt               # CPUを停止
