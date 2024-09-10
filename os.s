@@ -25,29 +25,29 @@ entry:
         # init register
         movw $0, %ax
         movw %ax, %ss
-        movw $0x7c00, %sp
-        movw %ax, %ds
+        movw $0x7c00, %sp # メモリ上のブートセクタ開始アドレス
+        movw %ax, %ds     # DSはデータセグメント
 
         # load disk
         movw $0x0820, %ax
-        movw %ax, %es    # buffer address(ES:BX)
-        movb $0, %ch     # cylinder 0
-        movb $0, %dh     # head 0
-        movb $2, %cl     # sector 2
+        movw %ax, %es     # buffer address(ES:BX)
+        movb $0, %ch      # cylinder 0
+        movb $0, %dh      # head 0
+        movb $2, %cl      # sector 2
 
-        movb $0x02, %ah  # ah=0x02 read
-        movb $1, %al     # 1 sector
-        movw $0, %bx     # buffer address(ES:BX)
-        movb $0x00, %dl  # drive A
-        int  $0x13       # interrupt bios
-        jc   error
+        movb $0x02, %ah   # ah=0x02 read
+        movb $1, %al      # 1 sector
+        movw $0, %bx      # buffer address(ES:BX)
+        movb $0x00, %dl   # drive A
+        int  $0x13        # interrupt bios
+        jc   error        # エラーがあればerrorにとぶ
 
 fin:
-        hlt
-        jmp fin
+        hlt               # CPUを停止
+        jmp fin           # 無限ループさせる
 
 error:
-        movw $msg, %si
+        movw $msg, %si    # msgのアドレスをロードする
 
 putloop:
         movb (%si), %al
@@ -56,12 +56,12 @@ putloop:
         je fin
         movb $0x0e, %ah
         movw $15, %bx
-        int $0x10
-        jmp putloop
+        int $0x10         # BIOSの文字出力割り込み
+        jmp putloop       # 次の文字
 
 msg:
         .string "\nload error\n\n"
 
 # end of boot sector
-.org    0x01fe
-.byte   0x55, 0xaa
+.org    0x01fe            # ここまでのバイナリサイズを510バイトに揃える
+.byte   0x55, 0xaa        # ブートセクタのシグネチャ
