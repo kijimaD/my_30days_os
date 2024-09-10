@@ -22,12 +22,31 @@ jmp entry
 .skip   18, 0
 
 entry:
+        # init register
         movw $0, %ax
         movw %ax, %ss
         movw $0x7c00, %sp
         movw %ax, %ds
-        movw %ax, %es
 
+        # load disk
+        movw $0x0820, %ax
+        movw %ax, %es    # buffer address(ES:BX)
+        movb $0, %ch     # cylinder 0
+        movb $0, %dh     # head 0
+        movb $2, %cl     # sector 2
+
+        movb $0x02, %ah  # ah=0x02 read
+        movb $1, %al     # 1 sector
+        movw $0, %bx     # buffer address(ES:BX)
+        movb $0x00, %dl  # drive A
+        int  $0x13       # interrupt bios
+        jc   error
+
+fin:
+        hlt
+        jmp fin
+
+error:
         movw $msg, %si
 
 putloop:
@@ -40,17 +59,9 @@ putloop:
         int $0x10
         jmp putloop
 
-fin:
-        hlt
-        jmp fin
-
 msg:
-        .string "\nhello, world...\n"
+        .string "\nload error\n\n"
 
+# end of boot sector
 .org    0x01fe
 .byte   0x55, 0xaa
-
-.byte   0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
-.skip   4600
-.byte   0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
-.skip   1469432
