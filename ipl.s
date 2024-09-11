@@ -66,17 +66,23 @@ next:
         movw %ax, %es
         addb $1, %cl
         cmp $18, %cl # セクター18まで読み込む
-        jae readloop # 以上なら
+        jbe readloop # 以下ならループ
 
         movb $1, %cl
         addb $1, %dh
         cmp $2, %dh
-        jb readloop # より下なら
+        jb readloop # より下ならループ
 
         movb $0, %dh
         addb $1, %ch
         cmp $CYLS, %ch
-        jb readloop # より下なら
+        jb readloop # より下ならループ
+
+        # jump to os program
+        # 0x0800(buffer address) + 0x4200(first file place of FAT12)
+        # セクタ2から先をメモリアドレス0x0820を先頭としてロード(0x0800-0x0820の512byteはIPL分としてスキップ)
+        # ディスクイメージ上0x4200の位置にあるOSのプログラムは、0x0800 + 0x4200 = 0xC200にロードされる
+        jmp 0xc200
 
 fin:
         hlt               # CPUを停止
