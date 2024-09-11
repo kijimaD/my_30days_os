@@ -34,12 +34,12 @@ $(IPL_BIN): $(IPL_SRC) $(IPL_LINK_SCRIPT)
 
 $(BOOTPACK_BIN): $(BOOTPAC_SRC)
 	mkdir -p $(TARGET_DIR)
-	gcc -nostdlib -m32 -T bootpack.lds -o $@ $(BOOTPACK_SRC)
 
 	#以下ボツ
 	#gcc -nostdlib -m32 -c -o bin/bootpack.o $(BOOTPACK_SRC)
 	#objcopy -O binary -j .text bin/bootpack.o $@
 	#ld -m elf_i386 -o $@ -e HariMain --oformat=binary bin/bootpack.o
+	gcc -nostdlib -m32 -fno-pic -T $(BOOTPACK_LINK_SCRIPT) -o $@ $(BOOTPACK_SRC)
 
 $(SYSTEM_IMG): $(OS_BIN) $(BOOTPACK_BIN)
 	cat $(OS_BIN) $(BOOTPACK_BIN) > $@
