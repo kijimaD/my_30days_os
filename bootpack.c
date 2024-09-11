@@ -1,5 +1,7 @@
+void io_hlt(void);
+
 void HariMain(void){
 fin:
-    __asm__("hlt\n\t");
-    goto fin;
+  io_hlt();
+  goto fin;
 }

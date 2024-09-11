@@ -4,13 +4,14 @@ BOOTPACK_LINK_SCRIPT=bootpack.lds
 
 IPL_SRC=ipl.s
 OS_SRC=asmhead.s
-
+ASM_LIB_SRC=asm_func.s
 BOOTPACK_SRC=bootpack.c
 
 TARGET_DIR=bin
 IPL_BIN=$(TARGET_DIR)/ipl.bin
 OS_BIN=$(TARGET_DIR)/asmhead.bin
 BOOTPACK_BIN=$(TARGET_DIR)/bootpack.bin
+ASM_LIB_BIN=$(TARGET_DIR)/asm_func.o
 SYSTEM_IMG=$(TARGET_DIR)/haribote.sys
 TARGET_IMG=$(TARGET_DIR)/haribote.img
 
@@ -18,6 +19,7 @@ TARGET_IMG=$(TARGET_DIR)/haribote.img
 DEBUG_DIR=debug
 LIST_IPL=$(DEBUG_DIR)/ipl.lst
 LIST_OS=$(DEBUG_DIR)/os.lst
+LIST_ASM_LIB=$(DEBUG_DIR)/asm_func.lst
 
 QEMU=qemu-system-x86_64
 
@@ -31,8 +33,12 @@ $(IPL_BIN): $(IPL_SRC) $(IPL_LINK_SCRIPT)
 	gcc -nostdlib -o $@ -T$(IPL_LINK_SCRIPT) $(IPL_SRC)
 	gcc -T $(IPL_LINK_SCRIPT) -c -g -Wa,-a,-ad $(IPL_SRC) -o bin/ipl.o > $(LIST_IPL)
 
-$(BOOTPACK_BIN): $(BOOTPAC_SRC)
-	gcc -nostdlib -m32 -fno-pic -T $(BOOTPACK_LINK_SCRIPT) -o $@ $(BOOTPACK_SRC)
+$(BOOTPACK_BIN): $(BOOTPACK_SRC) $(ASM_LIB_BIN)
+	gcc -nostdlib -m32 -fno-pic -c -o bin/bootpack.o $(BOOTPACK_SRC)
+	ld -m elf_i386 -o $@ -T bootpack.lds -e HariMain --oformat=binary bin/bootpack.o $(ASM_LIB_BIN)
+
+$(ASM_LIB_BIN): $(ASM_LIB_SRC)
+	gcc -m32 -c -g -Wa,-a,-ad $(ASM_LIB_SRC) -o $(ASM_LIB_BIN) > $(LIST_ASM_LIB)
 
 $(SYSTEM_IMG): $(OS_BIN) $(BOOTPACK_BIN)
 	cat $(OS_BIN) $(BOOTPACK_BIN) > $@
@@ -53,7 +59,7 @@ $(TARGET_IMG): $(SYSTEM_IMG) $(IPL_BIN)
 run: all
 	$(QEMU) -m 32 -drive format=raw,file=$(TARGET_IMG),if=floppy
 
-debug: all
+debug:all
 	$(QEMU) -drive format=raw,file=$(TARGET_IMG),if=floppy -gdb tcp::10000 -S
 
 clean:

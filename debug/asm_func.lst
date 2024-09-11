@@ -1,0 +1,17 @@
+GAS LISTING asm_func.s 			page 1
+
+
+   1              	.arch i486
+   2              	.text
+   3              	.global io_hlt
+   4              	
+   5              	io_hlt:
+   6 0000 F4       	        hlt
+   7 0001 C3       	        ret
+GAS LISTING asm_func.s 			page 2
+
+
+DEFINED SYMBOLS
+          asm_func.s:5      .text:0000000000000000 io_hlt
+
+NO UNDEFINED SYMBOLS
