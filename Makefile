@@ -1,22 +1,23 @@
 IPL_LINK_SCRIPT=ipl.lds
 OS_LINK_SCRIPT=os.lds
+BOOTPACK_LINK_SCRIPT=bootpack.lds
 
 IPL_SRC=ipl.s
 OS_SRC=asmhead.s
+
 BOOTPACK_SRC=bootpack.c
 
 TARGET_DIR=bin
 IPL_BIN=$(TARGET_DIR)/ipl.bin
 OS_BIN=$(TARGET_DIR)/asmhead.bin
 BOOTPACK_BIN=$(TARGET_DIR)/bootpack.bin
-
 SYSTEM_IMG=$(TARGET_DIR)/haribote.sys
-
 TARGET_IMG=$(TARGET_DIR)/haribote.img
 
 #debug
-LIST_IPL=$(TARGET_DIR)/ipl.lst
-LIST_OS=$(TARGET_DIR)/os.lst
+DEBUG_DIR=debug
+LIST_IPL=$(DEBUG_DIR)/ipl.lst
+LIST_OS=$(DEBUG_DIR)/os.lst
 
 QEMU=qemu-system-x86_64
 
@@ -34,26 +35,28 @@ $(IPL_BIN): $(IPL_SRC) $(IPL_LINK_SCRIPT)
 
 $(BOOTPACK_BIN): $(BOOTPAC_SRC)
 	mkdir -p $(TARGET_DIR)
-
-	#以下ボツ
-	#gcc -nostdlib -m32 -c -o bin/bootpack.o $(BOOTPACK_SRC)
-	#objcopy -O binary -j .text bin/bootpack.o $@
-	#ld -m elf_i386 -o $@ -e HariMain --oformat=binary bin/bootpack.o
 	gcc -nostdlib -m32 -fno-pic -T $(BOOTPACK_LINK_SCRIPT) -o $@ $(BOOTPACK_SRC)
 
 $(SYSTEM_IMG): $(OS_BIN) $(BOOTPACK_BIN)
 	cat $(OS_BIN) $(BOOTPACK_BIN) > $@
 
+# mformat: MS-DOS形式のディスクイメージを作成する。フロッピーディスクのイメージファイルにブートセクタを設定する
+# -f: フロッピーディスクの容量
+# -B: ブートセクタとして使用する。フロッピーディスクの先頭（ブートセクタ）にこのバイナリが書き込まれる
+# -C: クラスタサイズを自動決定する
+# -i: 操作対象のディスクイメージ
+# ::  ドライブ指定
+# mcopy: OSのバイナリをMS-DOS形式のフロッピーディスクイメージにコピーする
+# 第一引数: コピーするファイル
+# -i: 操作対象のディスクイメージ
 $(TARGET_IMG): $(SYSTEM_IMG) $(IPL_BIN)
-	#イメージ作成、IPLをブートセクタに配置
 	mformat -f 1440 -B $(IPL_BIN) -C -i $(TARGET_IMG) ::
-	#OSのプログラムをイメージにコピーする
 	mcopy $(SYSTEM_IMG) -i $(TARGET_IMG) ::
 
 run: all
 	$(QEMU) -m 32 -drive format=raw,file=$(TARGET_IMG),if=floppy
 
-debug:all
+debug: all
 	$(QEMU) -drive format=raw,file=$(TARGET_IMG),if=floppy -gdb tcp::10000 -S
 
 clean:
