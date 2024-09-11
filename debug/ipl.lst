@@ -1,0 +1,148 @@
+GAS LISTING ipl.s 			page 1
+
+
+   1              	.code16
+   2              	.set CYLS, 10
+   3              	
+   4 0000 EB4E     	jmp entry
+   5 0002 90       	.byte   0x90           # ブートセレクタの名前(8byte)
+   6 0003 48454C4C 	.ascii  "HELLOIPL"     # 1セクタの大きさ
+   6      4F49504C 
+   7 000b 0002     	.word   512            # クラスタの大きさ
+   8 000d 01       	.byte   1              # FATがどこから始まるか
+   9 000e 0100     	.word   1              # FATの個数
+  10 0010 02       	.byte   2              # ルートディレクトリ領域の大きさ
+  11 0011 E000     	.word   224            # このドライブの大きさ
+  12 0013 400B     	.word   2880           # メディアタイプ
+  13 0015 F0       	.byte   0xf0           # FAT領域の長さ
+  14 0016 0900     	.word   9              # 1トラックにいくつのセクタがあるか
+  15 0018 1200     	.word   18             # ヘッドの数
+  16 001a 0200     	.word   2              # パーティションを使っていないのでここは必ず0
+  17 001c 00000000 	.int    0              # このドライブの大きさをもう一度書く
+  18 0020 400B0000 	.int    2880           # よくわからないけどこの値にしておくといいらしい
+  19 0024 000029   	.byte   0, 0, 0x29     # たぶんボリュームシリアル番号
+  20 0027 FFFFFFFF 	.int    0xffffffff     # ディスクの名前(11byte)
+  21 002b 48454C4C 	.ascii  "HELLO-OS   "  # フォーマットの名前(8byte)
+  21      4F2D4F53 
+  21      202020
+  22 0036 46415431 	.ascii  "FAT12   "     # とりあえず18バイト空けておく。0x00で埋める
+  22      32202020 
+  23 003e 00000000 	.skip   18, 0
+  23      00000000 
+  23      00000000 
+  23      00000000 
+  23      0000
+  24              	
+  25              	entry:
+  26              	        # init register
+  27 0050 B80000   	        movw $0, %ax
+  28 0053 8ED0     	        movw %ax, %ss
+  29 0055 BC007C   	        movw $0x7c00, %sp # メモリ上のブートセクタ開始アドレス
+  30 0058 8ED8     	        movw %ax, %ds     # DSはデータセグメント
+  31              	
+  32              	        # load disk
+  33 005a B82008   	        movw $0x0820, %ax
+  34 005d 8EC0     	        movw %ax, %es     # buffer address(ES:BX)
+  35 005f B500     	        movb $0, %ch      # cylinder 0
+  36 0061 B600     	        movb $0, %dh      # head 0
+  37 0063 B102     	        movb $2, %cl      # sector 2
+  38              	
+  39              	readloop:
+  40 0065 BE0000   	        movw $0, %si # retry counter
+  41              	
+  42              	retry:
+  43 0068 B402     	        movb $0x02, %ah   # ah=0x02 read
+  44 006a B001     	        movb $1, %al      # 1 sector
+  45 006c BB0000   	        movw $0, %bx      # buffer address(ES:BX)
+  46 006f B200     	        movb $0x00, %dl   # drive A
+  47 0071 CD13     	        int  $0x13        # interrupt bios
+  48 0073 7310     	        jnc  next         # エラーがなければ次へ
+  49              	
+GAS LISTING ipl.s 			page 2
+
+
+  50 0075 83C601   	        addw $1, %si      # エラーカウントをカウントアップ
+  51 0078 83FE05   	        cmp  $5, %si
+  52 007b 7331     	        jae  error        # エラーカウント5回でエラー処理へ
+  53              	
+  54              	        # 再実行前にドライブ情報をリセット(drive A)
+  55 007d B400     	        movb $0x00, %ah
+  56 007f B200     	        movb $0x00, %dl   # drive A
+  57 0081 CD13     	        int  $0x13
+  58              	
+  59 0083 EBE3     	        jmp retry
+  60              	
+  61              	next:
+  62 0085 8CC0     	        movw %es, %ax
+  63              	        # 512 / 16 = 0x20
+  64              	        # 対象のアドレスは(ES x 16 + BX)でキマるので、ESを0x20ずらすと、512byt
+  65 0087 83C020   	        add $0x20, %ax
+  66 008a 8EC0     	        movw %ax, %es
+  67 008c 80C101   	        addb $1, %cl
+  68 008f 80F912   	        cmp $18, %cl # セクター18まで読み込む
+  69 0092 76D1     	        jbe readloop # 以下ならループ
+  70              	
+  71 0094 B101     	        movb $1, %cl
+  72 0096 80C601   	        addb $1, %dh
+  73 0099 80FE02   	        cmp $2, %dh
+  74 009c 72C7     	        jb readloop # より下ならループ
+  75              	
+  76 009e B600     	        movb $0, %dh
+  77 00a0 80C501   	        addb $1, %ch
+  78 00a3 80FD0A   	        cmp $CYLS, %ch
+  79 00a6 72BD     	        jb readloop # より下ならループ
+  80              	
+  81              	        # jump to os program
+  82              	        # 0x0800(buffer address) + 0x4200(first file place of FAT12)
+  83              	        # セクタ2から先をメモリアドレス0x0820を先頭としてロード(0x0800-0x082
+  84              	        # ディスクイメージ上0x4200の位置にあるOSのプログラムは、0x0800 + 0x4
+  85 00a8 E90000   	        jmp 0xc200
+  86              	
+  87              	fin:
+  88 00ab F4       	        hlt               # CPUを停止
+  89 00ac EBFD     	        jmp fin           # 無限ループさせる
+  90              	
+  91              	error:
+  92 00ae BE0000   	        movw $msg, %si    # msgのアドレスをロードする
+  93              	
+  94              	putloop:
+  95 00b1 8A04     	        movb (%si), %al
+  96 00b3 83C601   	        addw $1, %si
+  97 00b6 3C00     	        cmpb $0, %al
+  98 00b8 74F1     	        je fin
+  99 00ba B40E     	        movb $0x0e, %ah
+ 100 00bc BB0F00   	        movw $15, %bx
+ 101 00bf CD10     	        int $0x10         # BIOSの文字出力割り込み
+ 102 00c1 EBEE     	        jmp putloop       # 次の文字
+ 103              	
+ 104              	msg:
+ 105 00c3 0A6C6F61 	        .string "\nload error!\n\n"
+ 105      64206572 
+GAS LISTING ipl.s 			page 3
+
+
+ 105      726F7221 
+ 105      0A0A00
+ 106              	
+ 107              	# end of boot sector
+ 108 00d2 00000000 	.org    0x01fe            # ここまでのバイナリサイズを510バイトに揃える
+ 108      00000000 
+ 108      00000000 
+ 108      00000000 
+ 108      00000000 
+ 109 01fe 55AA     	.byte   0x55, 0xaa        # ブートセクタのシグネチャ
+GAS LISTING ipl.s 			page 4
+
+
+DEFINED SYMBOLS
+               ipl.s:2      *ABS*:000000000000000a CYLS
+               ipl.s:25     .text:0000000000000050 entry
+               ipl.s:39     .text:0000000000000065 readloop
+               ipl.s:42     .text:0000000000000068 retry
+               ipl.s:61     .text:0000000000000085 next
+               ipl.s:91     .text:00000000000000ae error
+               ipl.s:87     .text:00000000000000ab fin
+               ipl.s:104    .text:00000000000000c3 msg
+               ipl.s:94     .text:00000000000000b1 putloop
+
+NO UNDEFINED SYMBOLS

@@ -1,3 +1,5 @@
 *.img
-tmp/
-bin/
+tmp/*
+bin/*
+
+!.gitkeep

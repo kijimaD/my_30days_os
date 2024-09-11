@@ -24,17 +24,14 @@ QEMU=qemu-system-x86_64
 all: $(TARGET_IMG)
 
 $(OS_BIN): $(OS_SRC) $(OS_LINK_SCRIPT)
-	mkdir -p $(TARGET_DIR)
 	gcc -nostdlib -o $@ -T$(OS_LINK_SCRIPT) $(OS_SRC)
 	gcc -T $(OS_LINK_SCRIPT) -c -g -Wa,-a,-ad $(OS_SRC) -o bin/os.o > $(LIST_OS)
 
 $(IPL_BIN): $(IPL_SRC) $(IPL_LINK_SCRIPT)
-	mkdir -p $(TARGET_DIR)
 	gcc -nostdlib -o $@ -T$(IPL_LINK_SCRIPT) $(IPL_SRC)
 	gcc -T $(IPL_LINK_SCRIPT) -c -g -Wa,-a,-ad $(IPL_SRC) -o bin/ipl.o > $(LIST_IPL)
 
 $(BOOTPACK_BIN): $(BOOTPAC_SRC)
-	mkdir -p $(TARGET_DIR)
 	gcc -nostdlib -m32 -fno-pic -T $(BOOTPACK_LINK_SCRIPT) -o $@ $(BOOTPACK_SRC)
 
 $(SYSTEM_IMG): $(OS_BIN) $(BOOTPACK_BIN)
