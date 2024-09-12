@@ -1,0 +1,21 @@
+name: check
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          sudo apt install -y mtools
+          make all
+
+      - name: Check
+        run: |
+          ls -al ./bin
