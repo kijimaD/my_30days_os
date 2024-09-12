@@ -1,5 +1,5 @@
+.text
 .code16
-.set CYLS, 10
 
 jmp entry
 .byte   0x90           # ブートセレクタの名前(8byte)
@@ -21,6 +21,11 @@ jmp entry
 .ascii  "HELLO-OS   "  # フォーマットの名前(8byte)
 .ascii  "FAT12   "     # とりあえず18バイト空けておく。0x00で埋める
 .skip   18, 0
+
+# シリンダ数
+.set CYLS, 10
+# シリンダ数のメモリ位置
+.set _CYLS, 0xff0
 
 entry:
         # init register
@@ -64,12 +69,12 @@ next:
         # 対象のアドレスは(ES x 16 + BX)でキマるので、ESを0x20ずらすと、512byte分(1セクタ)ずらしたのとおなじになる
         add $0x20, %ax
         movw %ax, %es
-        addb $1, %cl
+        add $1, %cl
         cmp $18, %cl # セクター18まで読み込む
         jbe readloop # 以下ならループ
 
         movb $1, %cl
-        addb $1, %dh
+        add $1, %dh
         cmp $2, %dh
         jb readloop # より下ならループ
 
@@ -78,6 +83,7 @@ next:
         cmp $CYLS, %ch
         jb readloop # より下ならループ
 
+        movb $CYLS, (_CYLS)
         # jump to os program
         # 0x0800(buffer address) + 0x4200(first file place of FAT12)
         # セクタ2から先をメモリアドレス0x0820を先頭としてロード(0x0800-0x0820の512byteはIPL分としてスキップ)
