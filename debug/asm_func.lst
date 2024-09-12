@@ -3,15 +3,29 @@ GAS LISTING asm_func.s 			page 1
 
    1              	.arch i486
    2              	.text
-   3              	.global io_hlt
-   4              	
-   5              	io_hlt:
-   6 0000 F4       	        hlt
-   7 0001 C3       	        ret
+   3              	
+   4              	# void io_hlt(void)
+   5              	.global io_hlt
+   6              	# void write_mem8(int addr, int data)
+   7              	.global write_mem8
+   8              	
+   9              	io_hlt:
+  10 0000 F4       	        hlt
+  11 0001 C3       	        ret
+  12              	
+  13              	# C言語から呼び出す場合に使えるのはEAX, ECX, EDXの3つだけ
+  14              	write_mem8:
+  15              	        # ESP+4にaddrが入っているのでECXに読み込む
+  16 0002 8B4C2404 	        movl 4(%esp), %ecx
+  17              	        # ESP+8にdataが入っているのでALに読み込む
+  18 0006 8A442408 	        movb 8(%esp), %al
+  19 000a 8801     	        mov %al, (%ecx)
+  20 000c C3       	        ret
 GAS LISTING asm_func.s 			page 2
 
 
 DEFINED SYMBOLS
-          asm_func.s:5      .text:0000000000000000 io_hlt
+          asm_func.s:9      .text:0000000000000000 io_hlt
+          asm_func.s:14     .text:0000000000000002 write_mem8
 
 NO UNDEFINED SYMBOLS

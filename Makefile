@@ -59,7 +59,7 @@ $(TARGET_IMG): $(SYSTEM_IMG) $(IPL_BIN)
 run: all
 	$(QEMU) -m 32 -drive format=raw,file=$(TARGET_IMG),if=floppy
 
-debug:all
+debug: all
 	$(QEMU) -drive format=raw,file=$(TARGET_IMG),if=floppy -gdb tcp::10000 -S
 
 clean:
