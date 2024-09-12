@@ -35,7 +35,7 @@ $(IPL_BIN): $(IPL_SRC) $(IPL_LINK_SCRIPT)
 
 $(BOOTPACK_BIN): $(BOOTPACK_SRC) $(ASM_LIB_BIN)
 	gcc -nostdlib -m32 -fno-pic -c -o bin/bootpack.o $(BOOTPACK_SRC)
-	ld -m elf_i386 -o $@ -T bootpack.lds -e HariMain --oformat=binary bin/bootpack.o $(ASM_LIB_BIN)
+	ld -m elf_i386 -o $@ -T $(BOOTPACK_LINK_SCRIPT) -e HariMain --oformat=binary bin/bootpack.o $(ASM_LIB_BIN)
 
 $(ASM_LIB_BIN): $(ASM_LIB_SRC)
 	gcc -m32 -c -g -Wa,-a,-ad $(ASM_LIB_SRC) -o $(ASM_LIB_BIN) > $(LIST_ASM_LIB)
