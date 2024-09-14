@@ -51,8 +51,8 @@ io_in32:
 # 指定した装置にデータを送りつける
 # C言語から呼び出す場合に使えるのはEAX, ECX, EDXの3つだけ
 io_out8:
-        # ESP+4にaddrが入っているのでECXに読み込む
-        movl 4(%esp), %ecx
+        # ESP+4にaddrが入っているのでEDXに読み込む。番地なので4バイト必要
+        movl 4(%esp), %edx
         # ESP+8にdataが入っているのでALに読み込む
         movb 8(%esp), %al
         outb %al, %dx
