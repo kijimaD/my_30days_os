@@ -1,20 +1,86 @@
 .arch i486
 .text
 
-# void io_hlt(void)
-.global io_hlt
-# void write_mem8(int addr, int data)
-.global write_mem8
+.global io_hlt, io_cli, io_sti, io_stihlt
+.global io_in8, io_in16, io_in32
+.global io_out8, io_out16, io_out32
+.global io_load_eflags, io_store_eflags
 
+# void io_hlt(void)
 io_hlt:
         hlt
         ret
 
+# void io_cli(void)
+io_cli:
+        cli
+        ret
+
+# void io_sti(void)
+io_sti:
+        sti
+        ret
+
+# void io_stihlt(void)
+io_stihlt:
+        sti
+        hlt
+        ret
+
+# int io_in8(int port)
+io_in8:
+        movl 4(%esp), %edx
+        movl $0, %eax
+        inb %dx, %al
+        ret
+
+# int io_in16(int port)
+io_in16:
+        movl 4(%esp), %edx
+        movl $0, %eax
+        inw %dx, %ax
+        ret
+
+# int io_in32(int port)
+io_in32:
+        movl 4(%esp), %edx
+        inl %dx, %eax
+        ret
+
+# void io_out8(int addr, int data)
+# 指定した装置にデータを送りつける
 # C言語から呼び出す場合に使えるのはEAX, ECX, EDXの3つだけ
-write_mem8:
+io_out8:
         # ESP+4にaddrが入っているのでECXに読み込む
         movl 4(%esp), %ecx
         # ESP+8にdataが入っているのでALに読み込む
         movb 8(%esp), %al
-        mov %al, (%ecx)
+        outb %al, %dx
+        ret
+
+# void io_out16
+io_out16:
+        movl 4(%esp), %edx
+        movl 8(%esp), %eax
+        outw %ax, (%dx)
+        ret
+
+# void io_out32
+io_out32:
+        movl 4(%esp), %edx
+        movl 8(%esp), %eax
+        outl %eax, %dx
+        ret
+
+# int io_load_eflags(void)
+io_load_eflags:
+        pushf
+        pop %eax
+        ret
+
+# int io_store_eflags(void)
+io_store_eflags:
+        movl 4(%esp), %eax
+        push %eax
+        popf
         ret

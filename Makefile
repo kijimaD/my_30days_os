@@ -63,4 +63,5 @@ debug: all
 	$(QEMU) -drive format=raw,file=$(TARGET_IMG),if=floppy -gdb tcp::10000 -S
 
 clean:
-	rm -rf $(TARGET_DIR)
+	rm -rf $(TARGET_DIR)/*
+	touch $(TARGET_DIR)/.gitkeep

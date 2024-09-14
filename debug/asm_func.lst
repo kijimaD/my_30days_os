@@ -4,28 +4,109 @@ GAS LISTING asm_func.s 			page 1
    1              	.arch i486
    2              	.text
    3              	
-   4              	# void io_hlt(void)
-   5              	.global io_hlt
-   6              	# void write_mem8(int addr, int data)
-   7              	.global write_mem8
+   4              	.global io_hlt, io_cli, io_sti, io_stihlt
+   5              	.global io_in8, io_in16, io_in32
+   6              	.global io_out8, io_out16, io_out32
+   7              	.global io_load_eflags, io_store_eflags
    8              	
-   9              	io_hlt:
-  10 0000 F4       	        hlt
-  11 0001 C3       	        ret
-  12              	
-  13              	# C言語から呼び出す場合に使えるのはEAX, ECX, EDXの3つだけ
-  14              	write_mem8:
-  15              	        # ESP+4にaddrが入っているのでECXに読み込む
-  16 0002 8B4C2404 	        movl 4(%esp), %ecx
-  17              	        # ESP+8にdataが入っているのでALに読み込む
-  18 0006 8A442408 	        movb 8(%esp), %al
-  19 000a 8801     	        mov %al, (%ecx)
-  20 000c C3       	        ret
+   9              	# void io_hlt(void)
+  10              	io_hlt:
+  11 0000 F4       	        hlt
+  12 0001 C3       	        ret
+  13              	
+  14              	# void io_cli(void)
+  15              	io_cli:
+  16 0002 FA       	        cli
+  17 0003 C3       	        ret
+  18              	
+  19              	# void io_sti(void)
+  20              	io_sti:
+  21 0004 FB       	        sti
+  22 0005 C3       	        ret
+  23              	
+  24              	# void io_stihlt(void)
+  25              	io_stihlt:
+  26 0006 FB       	        sti
+  27 0007 F4       	        hlt
+  28 0008 C3       	        ret
+  29              	
+  30              	# int io_in8(int port)
+  31              	io_in8:
+  32 0009 8B542404 	        movl 4(%esp), %edx
+  33 000d B8000000 	        movl $0, %eax
+  33      00
+  34 0012 EC       	        inb %dx, %al
+  35 0013 C3       	        ret
+  36              	
+  37              	# int io_in16(int port)
+  38              	io_in16:
+  39 0014 8B542404 	        movl 4(%esp), %edx
+  40 0018 B8000000 	        movl $0, %eax
+  40      00
+  41 001d 66ED     	        inw %dx, %ax
+  42 001f C3       	        ret
+  43              	
+  44              	# int io_in32(int port)
+  45              	io_in32:
+  46 0020 8B542404 	        movl 4(%esp), %edx
+  47 0024 ED       	        inl %dx, %eax
+  48 0025 C3       	        ret
+  49              	
+  50              	# void io_out8(int addr, int data)
+  51              	# 指定した装置にデータを送りつける
+  52              	# C言語から呼び出す場合に使えるのはEAX, ECX, EDXの3つだけ
+  53              	io_out8:
+  54              	        # ESP+4にaddrが入っているのでECXに読み込む
+  55 0026 8B4C2404 	        movl 4(%esp), %ecx
 GAS LISTING asm_func.s 			page 2
 
 
+  56              	        # ESP+8にdataが入っているのでALに読み込む
+  57 002a 8A442408 	        movb 8(%esp), %al
+  58 002e EE       	        outb %al, %dx
+  59 002f C3       	        ret
+  60              	
+  61              	# void io_out16
+  62              	io_out16:
+  63 0030 8B542404 	        movl 4(%esp), %edx
+  64 0034 8B442408 	        movl 8(%esp), %eax
+  65 0038 66EF     	        outw %ax, (%dx)
+  66 003a C3       	        ret
+  67              	
+  68              	# void io_out32
+  69              	io_out32:
+  70 003b 8B542404 	        movl 4(%esp), %edx
+  71 003f 8B442408 	        movl 8(%esp), %eax
+  72 0043 EF       	        outl %eax, %dx
+  73 0044 C3       	        ret
+  74              	
+  75              	# int io_load_eflags(void)
+  76              	io_load_eflags:
+  77 0045 9C       	        pushf
+  78 0046 58       	        pop %eax
+  79 0047 C3       	        ret
+  80              	
+  81              	# int io_store_eflags(void)
+  82              	io_store_eflags:
+  83 0048 8B442404 	        movl 4(%esp), %eax
+  84 004c 50       	        push %eax
+  85 004d 9D       	        popf
+  86 004e C3       	        ret
+GAS LISTING asm_func.s 			page 3
+
+
 DEFINED SYMBOLS
-          asm_func.s:9      .text:0000000000000000 io_hlt
-          asm_func.s:14     .text:0000000000000002 write_mem8
+          asm_func.s:10     .text:0000000000000000 io_hlt
+          asm_func.s:15     .text:0000000000000002 io_cli
+          asm_func.s:20     .text:0000000000000004 io_sti
+          asm_func.s:25     .text:0000000000000006 io_stihlt
+          asm_func.s:31     .text:0000000000000009 io_in8
+          asm_func.s:38     .text:0000000000000014 io_in16
+          asm_func.s:45     .text:0000000000000020 io_in32
+          asm_func.s:53     .text:0000000000000026 io_out8
+          asm_func.s:62     .text:0000000000000030 io_out16
+          asm_func.s:69     .text:000000000000003b io_out32
+          asm_func.s:76     .text:0000000000000045 io_load_eflags
+          asm_func.s:82     .text:0000000000000048 io_store_eflags
 
 NO UNDEFINED SYMBOLS
