@@ -6,6 +6,7 @@ IPL_SRC=ipl.s
 OS_SRC=asmhead.s
 ASM_LIB_SRC=asm_func.s
 BOOTPACK_SRC=bootpack.c
+FONT_SRC=hankaku.s
 
 TARGET_DIR=bin
 IPL_BIN=$(TARGET_DIR)/ipl.bin
@@ -14,6 +15,7 @@ BOOTPACK_BIN=$(TARGET_DIR)/bootpack.bin
 ASM_LIB_BIN=$(TARGET_DIR)/asm_func.o
 SYSTEM_IMG=$(TARGET_DIR)/haribote.sys
 TARGET_IMG=$(TARGET_DIR)/haribote.img
+FONT_BIN=$(TARGET_DIR)/hankaku.o
 
 #debug
 DEBUG_DIR=debug
@@ -33,12 +35,16 @@ $(IPL_BIN): $(IPL_SRC) $(IPL_LINK_SCRIPT)
 	gcc -nostdlib -o $@ -T$(IPL_LINK_SCRIPT) $(IPL_SRC)
 	gcc -T $(IPL_LINK_SCRIPT) -c -g -Wa,-a,-ad $(IPL_SRC) -o bin/ipl.o > $(LIST_IPL)
 
-$(BOOTPACK_BIN): $(BOOTPACK_SRC) $(ASM_LIB_BIN)
+$(BOOTPACK_BIN): $(BOOTPACK_SRC) $(ASM_LIB_BIN) $(FONT_BIN)
 	gcc -nostdlib -m32 -fno-pic -c -o bin/bootpack.o $(BOOTPACK_SRC)
-	ld -m elf_i386 -o $@ -T $(BOOTPACK_LINK_SCRIPT) -e HariMain --oformat=binary bin/bootpack.o $(ASM_LIB_BIN)
+	ld -m elf_i386 -o $@ -T $(BOOTPACK_LINK_SCRIPT) -e HariMain --oformat=binary bin/bootpack.o $(ASM_LIB_BIN) $(FONT_BIN)
 
 $(ASM_LIB_BIN): $(ASM_LIB_SRC)
 	gcc -m32 -c -g -Wa,-a,-ad $(ASM_LIB_SRC) -o $(ASM_LIB_BIN) > $(LIST_ASM_LIB)
+
+$(FONT_BIN): $(FONT_SRC)
+	mkdir -p $(TARGET_DIR)
+	gcc -m32 -T .data -c -g -Wa,-a,-ad $(FONT_SRC) -o $@ > bin/hankaku.lst
 
 $(SYSTEM_IMG): $(OS_BIN) $(BOOTPACK_BIN)
 	cat $(OS_BIN) $(BOOTPACK_BIN) > $@

@@ -15,6 +15,7 @@
 #define COL8_008484 14
 #define COL8_848484 15
 
+extern char hankaku[4096];
 
 void io_hlt(void);
 void io_cli(void);
@@ -36,17 +37,21 @@ struct BOOTINFO {
 void HariMain(void){
   struct BOOTINFO *binfo;
 
-  static char font_A[] = {
-        0x00, 0x18, 0x18, 0x18, 0x18, 0x24, 0x24, 0x24,
-        0x24, 0x7e, 0x42, 0x42, 0x42, 0xa7, 0x00, 0x00
-  };
-
   /* 番地をセット */
   binfo = (struct BOOTINFO *) 0x0ff0;
 
   init_palette();
   init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
-  putfont8(binfo->vram, binfo->scrnx, 10, 10, COL8_FFFFFF, font_A);
+
+  putfont8(binfo->vram, binfo->scrnx, 10, 10, COL8_FFFFFF, hankaku + ('A' * 16));
+  putfont8(binfo->vram, binfo->scrnx, 20, 10, COL8_FFFFFF, hankaku + ('B' * 16));
+  putfont8(binfo->vram, binfo->scrnx, 30, 10, COL8_FFFFFF, hankaku + ('C' * 16));
+  putfont8(binfo->vram, binfo->scrnx, 40, 10, COL8_FFFFFF, hankaku + ('a' * 16));
+  putfont8(binfo->vram, binfo->scrnx, 50, 10, COL8_FFFFFF, hankaku + ('b' * 16));
+  putfont8(binfo->vram, binfo->scrnx, 60, 10, COL8_FFFFFF, hankaku + ('c' * 16));
+  putfont8(binfo->vram, binfo->scrnx, 70, 10, COL8_FFFFFF, hankaku + ('1' * 16));
+  putfont8(binfo->vram, binfo->scrnx, 80, 10, COL8_FFFFFF, hankaku + ('2' * 16));
+  putfont8(binfo->vram, binfo->scrnx, 90, 10, COL8_FFFFFF, hankaku + ('3' * 16));
 
   for(;;) {
     io_hlt();
