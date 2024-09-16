@@ -9,20 +9,23 @@ struct BOOTINFO {
   char *vram;
 };
 
+#define ADDR_BOOTINFO 0x00000ff0;
+
+/* asm_func.s */
 void io_hlt(void);
 void io_cli(void);
 void io_out8(int port, int data);
 int io_load_eflags(void);
 void io_store_eflags(int eflags);
 
-/* clib */
+/* clib.c */
 void *sprintf(char *s, char *format, ...);
 unsigned int to_dec_asc(char *buf, int n);
 unsigned int to_hex_asc(char *buf, int n);
 unsigned int ndigit(unsigned int n);
 unsigned int upow(unsigned int x, unsigned int n);
 
-/* desctbl */
+/* desctbl.c */
 struct SEGMENT_DESCRIPTOR {
   short limit_low, base_low;
   char base_mid, access_right;
@@ -41,7 +44,7 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
 
-/* graphic */
+/* graphic.c */
 #define COL8_000000 0
 #define COL8_FF0000 1
 #define COL8_00FF00 2

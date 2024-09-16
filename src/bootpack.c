@@ -7,7 +7,7 @@ void HariMain(void){
   int my;
 
   /* 番地をセット */
-  struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
+  struct BOOTINFO *binfo = (struct BOOTINFO *) ADDR_BOOTINFO;
 
   init_palette();
   init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
