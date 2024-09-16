@@ -9,6 +9,9 @@ void HariMain(void){
   /* 番地をセット */
   struct BOOTINFO *binfo = (struct BOOTINFO *) ADDR_BOOTINFO;
 
+  init_gdtidt();
+  init_pic();
+
   init_palette();
   init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
 

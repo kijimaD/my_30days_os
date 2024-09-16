@@ -25,10 +25,13 @@ void init_gdtidt(void) {
 
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar) {
   if(limit > 0xffffffff) {
+    /* access right */
     ar = ar | 0x8000;
     limit = limit / 0x1000;
   }
 
+  /* セグメントの情報を、CPUの仕様にしたがって8バイトにまとめて書き込む */
+  /* baseは3箇所に分断されているが、4バイトある */
   sd->limit_low = limit & 0xffff;
   sd->base_low = base & 0xffff;
   sd->base_mid = (base >> 16) & 0xff;
