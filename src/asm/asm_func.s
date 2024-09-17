@@ -6,6 +6,9 @@
 .global io_out8, io_out16, io_out32
 .global io_load_eflags, io_store_eflags
 .global load_gdtr, load_idtr
+.global asm_inthandler21, asm_inthandler2c, asm_inthandler27
+
+.extern inthandler21, inthandler2c, inthandler27
 
 # void io_hlt(void)
 io_hlt:
@@ -102,3 +105,55 @@ load_idtr:
         mov %ax, 6(%esp)
         lidt 6(%esp)
         ret
+
+# void asm_inthandler21(void)
+asm_inthandler21:
+        push %es
+        push %ds
+        pusha
+        movl %esp, %eax
+        push %eax
+        movw %ss, %ax
+        movw %ax, %ds
+        movw %ax, %es
+        call inthandler21
+        pop %eax
+        popa
+        pop %ds
+        pop %es
+        iret
+        # es, ds, ssを同じ値にそろえるのは、「C言語ではこれらが同じセグメントを指していると思い込むため」らしい。そのとおりになっていないとinthandler21が実行できない
+
+# void asm_inthandler2c(void)
+asm_inthandler2c:
+        push %es
+        push %ds
+        pusha
+        mov %esp, %eax
+        push %eax
+        mov %ss, %ax
+        mov %ax, %ds
+        mov %ax, %es
+        call inthandler2c
+        pop %eax
+        popa
+        pop %ds
+        pop %es
+        iret
+
+# void asm_inthandler27(void)
+asm_inthandler27:
+        push %es
+        push %ds
+        pusha
+        mov %esp, %eax
+        push %eax
+        mov %ss, %ax
+        mov %ax, %ds
+        mov %ax, %es
+        call inthandler27
+        pop %eax
+        popa
+        pop %ds
+        pop %es
+        iret

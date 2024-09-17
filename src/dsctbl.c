@@ -3,8 +3,8 @@
 /* GDTはCPUのメモリ保護機能を設定するのに使う */
 /* IDTはCPUの割り込み処理を設定するのに使う */
 void init_gdtidt(void) {
-  struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) 0x00270000;
-  struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *) 0x0026f800;
+  struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADDR_GDT;
+  struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *) ADDR_IDT;
   int i;
 
   for (i = 0; i < 8092; i++) {
@@ -12,15 +12,21 @@ void init_gdtidt(void) {
     set_segmdesc(gdt + i, 0, 0, 0);
   }
   /* 全メモリを表しているセグメント */
-  set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, 0x4092);
+  set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);
   /* 512KBまでを表すセグメント。bootpackのためにある */
-  set_segmdesc(gdt + 2, 0x0007ffff, 0x00280000, 0x409a);
-  load_gdtr(0xffff, 0x00270000);
+  set_segmdesc(gdt + 2, LIMIT_BOTPAK, 0x00280000, AR_CODE32_ER);
+  load_gdtr(LIMIT_GDT, ADDR_GDT);
 
   for (i = 0; i < 256; i++) {
     set_gatedesc(idt + i, 0, 0, 0);
   }
-  load_idtr(0x7ff, 0x0026f800);
+  load_idtr(LIMIT_IDT, ADDR_IDT);
+
+  /* 2<<3はセグメント。セグメント番号2番。8倍するのは、セグメント番号の下位3ビットは別の意味があって、ここでは0にしておかないといけないから */
+  /* AR_INTGATE32は、IDTに対する属性設定で、割り込み処理用の有効な設定ということを表す */
+  set_gatedesc(idt + 0x21, (int)asm_inthandler21, 2 << 3, AR_INTGATE32);
+  set_gatedesc(idt + 0x27, (int)asm_inthandler27, 2 << 3, AR_INTGATE32);
+  set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 2 << 3, AR_INTGATE32);
 }
 
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar) {

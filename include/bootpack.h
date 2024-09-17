@@ -11,21 +11,45 @@ struct BOOTINFO {
 
 #define ADDR_BOOTINFO 0x00000ff0;
 
-/* asm_func.s */
+/* asm_func.s ================ */
 void io_hlt(void);
 void io_cli(void);
 void io_out8(int port, int data);
 int io_load_eflags(void);
 void io_store_eflags(int eflags);
+void asm_inthandler21(void);
+void asm_inthandler2c(void);
+void asm_inthandler27(void);
 
-/* clib.c */
+/* clib.c ================*/
 void *sprintf(char *s, char *format, ...);
 unsigned int to_dec_asc(char *buf, int n);
 unsigned int to_hex_asc(char *buf, int n);
 unsigned int ndigit(unsigned int n);
 unsigned int upow(unsigned int x, unsigned int n);
 
-/* desctbl.c */
+/* desctbl.c ================ */
+#define ADDR_IDT 0x0026f800
+#define LIMIT_IDT 0x000007ff
+#define ADDR_GDT 0x00270000
+#define LIMIT_GDT 0x0000ffff
+
+//asmheadの中でbootpackは0x00280000 - 0x002ffffにコピーされる
+#define ADDR_BOTPAK 0x00280000
+#define LIMIT_BOTPAK 0x0007ffff
+
+//上位4bitはGD00で、GはG bit, Dはセグメントモード(1=32bit, 0=16bit)を表す
+//16bitモードは80286互換のためで、bios呼び出しとかでは使えない、なので通常はD=1で使う
+//下位は、
+//0x00 : 未使用
+//0x92 : システム、読み書き
+//0x9a : システム、読み込み、実行
+//0xf2 : アプリケーション、読み書き
+//0xfa : アプリケーション、読み込み、実行
+#define AR_DATA32_RW  0x4092
+#define AR_CODE32_ER  0x409a
+#define AR_INTGATE32  0x008e
+
 struct SEGMENT_DESCRIPTOR {
   short limit_low, base_low;
   char base_mid, access_right;
@@ -44,7 +68,7 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
 
-/* graphic.c */
+/* graphic.c ================ */
 #define COL8_000000 0
 #define COL8_FF0000 1
 #define COL8_00FF00 2
@@ -71,7 +95,7 @@ void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s
 void putfont8(char *vram, int xsize, int x, int y, char c, char *font);
 void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1);
 
-/* int.c */
+/* int.c ================ */
 void init_pic(void);
 
 #define PIC0_ICW1 0x0020
@@ -86,5 +110,10 @@ void init_pic(void);
 #define PIC1_ICW2 0x00a1
 #define PIC1_ICW3 0x00a1
 #define PIC1_ICW4 0x00a1
+
+void init_pic(void);
+void inthandler21(int *esp);
+void inthandler2c(int *esp);
+void inthandler27(int *esp);
 
 #endif
