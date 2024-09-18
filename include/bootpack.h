@@ -17,7 +17,10 @@ struct BOOTINFO {
 /* asm_func.s ================ */
 void io_hlt(void);
 void io_cli(void);
+void io_sti(void);
+void io_stihlt(void);
 void io_out8(int port, int data);
+int io_in8(int port);
 int io_load_eflags(void);
 void io_store_eflags(int eflags);
 void asm_inthandler21(void);
@@ -30,6 +33,11 @@ unsigned int to_dec_asc(char *buf, int n);
 unsigned int to_hex_asc(char *buf, int n, int capital);
 unsigned int ndigit(unsigned int n, unsigned int base);
 unsigned int upow(unsigned int x, unsigned int n);
+int iscapital(char c);
+int atoi(char *s);
+int isdigit(char c);
+char *memcpy(char *buf1, char *buf2, int n);
+int memset(char *buf, char byte, int n);
 
 /* dsctbl.c ================ */
 #define ADDR_IDT 0x0026f800
