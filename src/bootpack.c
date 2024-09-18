@@ -19,10 +19,10 @@ void HariMain(void){
   init_palette();
   init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
 
-  sprintf(str, "scrnx = %d", binfo->scrnx);
+  _sprintf(str, "scrnx = %d", binfo->scrnx);
   putfonts8_asc(binfo->vram, binfo->scrnx, 16, 64, COL8_FFFFFF, str);
 
-  /* sprintf(str, "(%d, %d)", mx, my); */
+  /* _sprintf(str, "(%d, %d)", mx, my); */
   /* putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, str); */
 
   putfonts8_asc(binfo->vram, binfo->scrnx, 31, 31, COL8_000000, "Haribote OS."); // 影
@@ -51,7 +51,7 @@ void HariMain(void){
 
       /* 割り込み許可 */
       io_sti();
-      sprintf(str, "%02X", i);
+      _sprintf(str, "%02X", i);
 
       boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
       putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, str);
