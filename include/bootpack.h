@@ -3,13 +3,16 @@
 
 #include <stdarg.h>
 
+#define ADDR_BOOTINFO 0x00000ff0;
+
+#define TRUE 1
+#define FALSE 0
+
 struct BOOTINFO {
   char cyls, leds, vmode, reserve;
   short scrnx, scrny;
   char *vram;
 };
-
-#define ADDR_BOOTINFO 0x00000ff0;
 
 /* asm_func.s ================ */
 void io_hlt(void);
@@ -24,11 +27,11 @@ void asm_inthandler27(void);
 /* clib.c ================*/
 void *sprintf(char *s, char *format, ...);
 unsigned int to_dec_asc(char *buf, int n);
-unsigned int to_hex_asc(char *buf, int n);
-unsigned int ndigit(unsigned int n);
+unsigned int to_hex_asc(char *buf, int n, int capital);
+unsigned int ndigit(unsigned int n, unsigned int base);
 unsigned int upow(unsigned int x, unsigned int n);
 
-/* desctbl.c ================ */
+/* dsctbl.c ================ */
 #define ADDR_IDT 0x0026f800
 #define LIMIT_IDT 0x000007ff
 #define ADDR_GDT 0x00270000
@@ -110,6 +113,8 @@ void init_pic(void);
 #define PIC1_ICW2 0x00a1
 #define PIC1_ICW3 0x00a1
 #define PIC1_ICW4 0x00a1
+
+#define PORT_KEYDAT 0x0060
 
 void init_pic(void);
 void inthandler21(int *esp);

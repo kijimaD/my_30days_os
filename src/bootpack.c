@@ -11,6 +11,8 @@ void HariMain(void){
 
   init_gdtidt();
   init_pic();
+
+  /* 割り込みを受け付ける */
   io_sti();
 
   init_palette();
@@ -19,7 +21,9 @@ void HariMain(void){
   sprintf(str, "scrnx = %d", binfo->scrnx);
   putfonts8_asc(binfo->vram, binfo->scrnx, 16, 64, COL8_FFFFFF, str);
 
-  putfonts8_asc(binfo->vram, binfo->scrnx, 8, 8, COL8_FFFFFF, "ABC 123");
+  /* sprintf(str, "(%d, %d)", mx, my); */
+  /* putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, str); */
+
   putfonts8_asc(binfo->vram, binfo->scrnx, 31, 31, COL8_000000, "Haribote OS."); // 影
   putfonts8_asc(binfo->vram, binfo->scrnx, 30, 30, COL8_FFFFFF, "Haribote OS.");
 

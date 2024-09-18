@@ -26,11 +26,20 @@ void init_pic(void) {
 /* キーボード割り込み */
 void inthandler21(int *esp) {
   struct BOOTINFO *binfo = (struct BOOTINFO *) ADDR_BOOTINFO;
-  boxfill8(binfo->vram, binfo->scrnx, COL8_000000, 0, 0, 32 * 8 - 1, 15);
-  putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, "INT 21 (ORQ-1) : PS2 keyboard");
-  for(;;) {
-    io_hlt();
-  }
+  unsigned char data;
+  unsigned char s[128];
+
+  /* IRQ-01に受付完了を通知。これをやらないとPICが見張りを再開しないので次のキー入力に気づけなくなってしまう */
+  io_out8(PIC0_OCW2, 0x61);
+  /* 装置からキーコードを取得する */
+  data = io_in8(PORT_KEYDAT);
+
+  // data = 0x5f;
+  // sprintf(s, "%03d, %04d, 0x%02x, 0x%03X", data, data, data, data, data);
+  sprintf(s, "%02X", data);
+
+  boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
+  putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
 }
 
 /* マウス割り込み */
