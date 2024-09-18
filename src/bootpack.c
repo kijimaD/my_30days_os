@@ -5,6 +5,7 @@ void HariMain(void){
   char mcursor[16 * 16];
   int mx;
   int my;
+  int i;
 
   /* 番地をセット */
   struct BOOTINFO *binfo = (struct BOOTINFO *) ADDR_BOOTINFO;
@@ -38,6 +39,22 @@ void HariMain(void){
   io_out8(PIC1_IMR, 0xef);
 
   for(;;) {
-    io_hlt();
+    /* 割り込み禁止 */
+    io_cli();
+    if (keybuf.flag == 0) {
+      /* 割り込み許可と停止 */
+      /* HLT命令はもしPICから連絡があればCPUを目覚めさせてくれる */
+      io_stihlt();
+    } else {
+      i = keybuf.data;
+      keybuf.flag = 0;
+
+      /* 割り込み許可 */
+      io_sti();
+      sprintf(str, "%02X", i);
+
+      boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
+      putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, str);
+    }
   }
 }

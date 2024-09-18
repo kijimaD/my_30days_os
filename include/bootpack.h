@@ -116,9 +116,15 @@ void init_pic(void);
 
 #define PORT_KEYDAT 0x0060
 
+struct KEYBUF {
+  unsigned char data;
+  unsigned char flag; // バッファに空きがあるかどうか
+};
+
 void init_pic(void);
 void inthandler21(int *esp);
 void inthandler2c(int *esp);
 void inthandler27(int *esp);
 
+extern struct KEYBUF keybuf;
 #endif
