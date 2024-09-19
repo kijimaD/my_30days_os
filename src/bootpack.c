@@ -6,6 +6,7 @@ void HariMain(void){
   int mx;
   int my;
   int i;
+  int j;
 
   /* 番地をセット */
   struct BOOTINFO *binfo = (struct BOOTINFO *) ADDR_BOOTINFO;
@@ -41,13 +42,16 @@ void HariMain(void){
   for(;;) {
     /* 割り込み禁止 */
     io_cli();
-    if (keybuf.flag == 0) {
+    if (keybuf.next == 0) {
       /* 割り込み許可と停止 */
       /* HLT命令はもしPICから連絡があればCPUを目覚めさせてくれる */
       io_stihlt();
     } else {
-      i = keybuf.data;
-      keybuf.flag = 0;
+      i = keybuf.data[0];
+      keybuf.next--;
+      for(j = 0; j < keybuf.next; j++) {
+        keybuf.data[j] = keybuf.data[j + 1];
+      }
 
       /* 割り込み許可 */
       io_sti();

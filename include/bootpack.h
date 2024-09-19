@@ -124,9 +124,11 @@ void init_pic(void);
 
 #define PORT_KEYDAT 0x0060
 
+#define KEYBUF_SIZE 32
+
 struct KEYBUF {
-  unsigned char data;
-  unsigned char flag; // バッファに空きがあるかどうか
+  unsigned char data[KEYBUF_SIZE];
+  int next;
 };
 
 void init_pic(void);

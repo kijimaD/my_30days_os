@@ -36,9 +36,9 @@ void inthandler21(int *esp) {
   /* 装置からキーコードを取得する */
   data = io_in8(PORT_KEYDAT);
 
-  if(keybuf.flag == 0) {
-    keybuf.data = data;
-    keybuf.flag = 1;
+  if(keybuf.next < KEYBUF_SIZE) {
+    keybuf.data[keybuf.next] = data;
+    keybuf.next++;
   }
 }
 
